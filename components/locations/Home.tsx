@@ -203,7 +203,7 @@ const Home = () => {
       <Flex style={{ width: '900px' }} flexDirection="column" marginTop="spacing3Xl">
         <Stats />
         <Recents />
-        <Members />
+        {/* <Members /> */}
       </Flex>
     </Flex>
     // <Box margin="spacingXl">

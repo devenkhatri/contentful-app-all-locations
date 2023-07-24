@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Box, EntityList, EntityListItem, Flex, Grid, Heading, Paragraph, Text } from '@contentful/f36-components';
+import { Box, EntityList, EntityListItem, Flex, Grid, Heading, Note, Paragraph, Text } from '@contentful/f36-components';
 import { useAsync } from 'react-async-hook';
 import { useSDK } from '@contentful/react-apps-toolkit';
 import { Recent } from './Recent';
@@ -74,6 +74,11 @@ const Recents = () => {
                 );
               })}
           </EntityList>
+          {result && result.items && result.items.length <= 0 &&
+            <Note variant="neutral">
+              No Result Found!
+            </Note>
+          }
         </Box>
       )}
     </Flex>
