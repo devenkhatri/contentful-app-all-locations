@@ -7,6 +7,7 @@ import Dialog from '@/components/locations/Dialog';
 import Sidebar from '@/components/locations/Sidebar';
 import Page from '@/components/locations/Page';
 import Home from '@/components/locations/Home';
+import LocalhostWarning from '@/components/LocalhostWarning';
 import { useSDK } from '@contentful/react-apps-toolkit';
 
 const ComponentLocationSettings = {
