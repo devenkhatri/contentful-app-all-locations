@@ -22,6 +22,7 @@ const Stats = () => {
       contentTypes: { num: contentTypes.total, text: 'Content Types', data: contentTypes, type: 'contentTypes' },
       entries: { num: entries.total, text: 'Entries', data: entries, type: 'entries' },
       publishedEntries: { num: publishedEntries.total, text: 'Published Entries', data: publishedEntries, type: 'publishedEntries' },
+      unPublishedEntries: { num: entries.total - publishedEntries.total, text: 'UnPublished Entries', data: entries, type: 'unPublishedEntries' },
       assets: { num: assets.total, text: 'Assets', data: assets, type: 'assets' },
       locales: { num: locales.total, text: 'Locales', data: locales, type: 'locales' },
       tags: { num: tags.total, text: 'Tags', data: tags, type: 'tags' },
