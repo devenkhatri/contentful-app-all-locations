@@ -56,7 +56,7 @@ const Recents = () => {
               result.items.map((entry: any) => {
                 const contentType = contentTypes && contentTypes.result && contentTypes.result.items &&
                   contentTypes.result.items.length &&
-                  contentTypes.result.items.find((ct) => ct.sys.id === entry.sys.contentType.sys.id);
+                  contentTypes.result.items.find((ct) => ct.sys.id === entry.sys.contentType.sys.id);                  
                 return (
                   <EntityListItem
                     entityType="entry"

@@ -24,7 +24,7 @@ const Stats = () => {
       publishedEntries: { num: publishedEntries.total, text: 'Published Entries', data: publishedEntries, type: 'publishedEntries' },
       unPublishedEntries: { num: entries.total - publishedEntries.total, text: 'UnPublished Entries', data: entries, type: 'unPublishedEntries' },
       assets: { num: assets.total, text: 'Assets', data: assets, type: 'assets' },
-      locales: { num: locales.total, text: 'Locales', data: locales, type: 'locales' },
+      // locales: { num: locales.total, text: 'Locales', data: locales, type: 'locales' },
       tags: { num: tags.total, text: 'Tags', data: tags, type: 'tags' },
     };
   }, [cma]);
