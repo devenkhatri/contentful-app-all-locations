@@ -194,10 +194,11 @@ const Home = () => {
         padding="spacingXl"
         fullWidth
         style={{ backgroundColor: tokens.gray700 }}>
-        <Flex flexDirection="column" gap="spacingXl" style={{ width: '900px' }}>          
+        <Flex flexDirection="row" gap="spacingXl" justifyContent="space-between" style={{ width: '900px' }}>          
           <Text fontColor="colorWhite" fontSize="fontSize2Xl" fontWeight="fontWeightDemiBold">
             👋 Welcome back, {sdk.user.firstName} {sdk.user.lastName}!
           </Text>
+          <Text fontColor='colorWhite'>Last updated on: {(new Date()).toLocaleString()}</Text>
         </Flex>
       </Flex>
       <Flex style={{ width: '900px' }} flexDirection="column" marginTop="spacing3Xl">
