@@ -1,9 +1,10 @@
-import { Card, Flex, DisplayText, Text, Button, Collapse, Heading, Modal, Paragraph, IconButton, Table } from '@contentful/f36-components';
-import React, { useState, useEffect } from 'react';
+import { Card, Flex, DisplayText, Text, Button, Collapse, Heading, Modal, Paragraph, IconButton, Table, Spinner, Note } from '@contentful/f36-components';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowDownTrimmedIcon, ExternalLinkTrimmedIcon } from '@contentful/f36-icons';
 import _ from 'lodash';
 import { HomeAppSDK } from '@contentful/app-sdk';
 import { useSDK } from '@contentful/react-apps-toolkit';
+import { useAsync } from 'react-async-hook';
 
 interface StatCardProps {
   count: number;
@@ -29,10 +30,10 @@ export const StatCard = ({ count, title, data, type }: StatCardProps) => {
 
   const getModelContent = (type: string) => {
     if (type == "contentTypes") return getContentTypesDetails(data);
-    if (type == "entries") return getEntriesDetails(data, "Entries Details");
-    if (type == "publishedEntries") return getPublishedEntriesDetails(data);
-    if (type == "unPublishedEntries") return getUnPublishedEntriesDetails(data);
-    if (type == "assets") return getAssetsDetails(data);
+    if (type == "entries") return getEntriesDetails("Entries Details", "");
+    if (type == "publishedEntries") return getPublishedEntriesDetails();
+    if (type == "unPublishedEntries") return getUnPublishedEntriesDetails();
+    if (type == "assets") return getAssetsDetails();
     if (type == "tags") return getTagsDetails(data);
     return <Heading>Work in progress...</Heading>
   }
@@ -40,8 +41,8 @@ export const StatCard = ({ count, title, data, type }: StatCardProps) => {
   const processOpenLinkClick = (type: string) => {
     if (type == "contentTypes") return getContentTypesDetails(data);
     if (type == "entries") sdk.navigator.openEntriesList();
-    if (type == "publishedEntries") return getPublishedEntriesDetails(data);
-    if (type == "unPublishedEntries") return getUnPublishedEntriesDetails(data);
+    if (type == "publishedEntries") return getPublishedEntriesDetails();
+    if (type == "unPublishedEntries") return getUnPublishedEntriesDetails();
     if (type == "assets") sdk.navigator.openAssetsList();
     if (type == "tags") return getTagsDetails(data);
   }
@@ -52,9 +53,11 @@ export const StatCard = ({ count, title, data, type }: StatCardProps) => {
         <Heading>ContentTypes Details</Heading>
         <Table>
           <Table.Head>
-            <Table.Cell>Name</Table.Cell>
-            <Table.Cell>Total Fields</Table.Cell>
-            <Table.Cell>Display Field</Table.Cell>
+            <Table.Row>
+              <Table.Cell>Name</Table.Cell>
+              <Table.Cell>Total Fields</Table.Cell>
+              <Table.Cell>Display Field</Table.Cell>
+            </Table.Row>
           </Table.Head>
           <Table.Body>
             {data && data.items.map((item: any) => (
@@ -70,15 +73,43 @@ export const StatCard = ({ count, title, data, type }: StatCardProps) => {
     );
   }
 
-  const getEntriesDetails = (data: any, title: string) => {
-    const groupbyContenttype = _.groupBy(data.items, item => item.sys.contentType.sys.id)
+  const getAllEntries = useCallback(async () => {
+    //get all entries if its more than 1000
+    let data = await cma.entry.getMany({ query: { limit: 1000 } });
+    while (data.total > data.items.length) {
+      const newentries = await cma.entry.getMany({ query: { skip: data.items.length, limit: 1000 } });
+      data.items = _.concat(data.items, newentries.items)
+    }
+    return data;
+  }, [])
+
+  const getEntriesDetails = (title: string, filter: string) => {
+    const { result, loading } = useAsync(getAllEntries, []);
+    if (loading) return <Spinner />;
+    let finalData: any = result && result.items;
+    if (result && filter == "unpublished") {
+      finalData = _.filter(result.items, item => item.sys.publishedCounter <= 0)
+    } else if (result && filter == "published") {
+      finalData = _.filter(result.items, item => item.sys.version == item.sys.publishedVersion + 1)
+    }
+    if (finalData && finalData.length <= 0) {
+      return (
+        <Note variant="neutral">
+          No Result Found!
+        </Note>
+      )
+    }
+
+    const groupbyContenttype = _.groupBy(finalData, item => item.sys.contentType.sys.id)
     return (
       <React.Fragment>
         <Heading>{title}</Heading>
         <Table>
           <Table.Head>
-            <Table.Cell>ContentType Name</Table.Cell>
-            <Table.Cell>Total Records</Table.Cell>
+            <Table.Row>
+              <Table.Cell>ContentType Name</Table.Cell>
+              <Table.Cell>Total Records</Table.Cell>
+            </Table.Row>
           </Table.Head>
           <Table.Body>
             {groupbyContenttype && Object.keys(groupbyContenttype).map((item: any) => (
@@ -93,24 +124,45 @@ export const StatCard = ({ count, title, data, type }: StatCardProps) => {
     );
   }
 
-  const getPublishedEntriesDetails = (data: any) => {
-    return getEntriesDetails(data, "Published Entries Details");
+  const getPublishedEntriesDetails = () => {
+    return getEntriesDetails("Published Entries Details", "published");
   }
 
-  const getUnPublishedEntriesDetails = (data: any) => {
-    const unpublishedEntries = _.filter(data.items, item => item.sys.publishedCounter <= 0)
-    return getEntriesDetails({ items: unpublishedEntries }, "UnPublished Entries Details");
+  const getUnPublishedEntriesDetails = () => {
+    return getEntriesDetails("UnPublished Entries Details", "unpublished");
   }
 
-  const getAssetsDetails = (data: any) => {
-    const groupbyAssettype = _.groupBy(data.items, item => item.fields.file["en-US"].contentType)
+  const getAllAssets = useCallback(async () => {
+    //get all assets if its more than 1000
+    let data = await cma.asset.getMany({ query: { limit: 1000 } });
+    while (data.total > data.items.length) {
+      const newassets = await cma.asset.getMany({ query: { skip: data.items.length, limit: 1000 } });
+      data.items = _.concat(data.items, newassets.items)
+    }
+    return data;
+  }, [])
+
+
+  const getAssetsDetails = () => {
+    const { result, loading } = useAsync(getAllAssets, []);
+    if (loading) return <Spinner />;
+    if (result && result.items && result.items.length <= 0) {
+      return (
+        <Note variant="neutral">
+          No Result Found!
+        </Note>
+      )
+    }
+    const groupbyAssettype = _.groupBy(result && result.items, item => item.fields.file["en-US"].contentType)
     return (
       <React.Fragment>
         <Heading>Asset Details</Heading>
         <Table>
           <Table.Head>
-            <Table.Cell>Asset Type</Table.Cell>
-            <Table.Cell>Total Records</Table.Cell>
+            <Table.Row>
+              <Table.Cell>Asset Type</Table.Cell>
+              <Table.Cell>Total Records</Table.Cell>
+            </Table.Row>
           </Table.Head>
           <Table.Body>
             {groupbyAssettype && Object.keys(groupbyAssettype).map((item: any) => (
@@ -132,8 +184,10 @@ export const StatCard = ({ count, title, data, type }: StatCardProps) => {
         <Heading>Asset Details</Heading>
         <Table>
           <Table.Head>
-            <Table.Cell>Tag Name</Table.Cell>
-            <Table.Cell>Tag ID</Table.Cell>
+            <Table.Row>
+              <Table.Cell>Tag Name</Table.Cell>
+              <Table.Cell>Tag ID</Table.Cell>
+            </Table.Row>
           </Table.Head>
           <Table.Body>
             {sortedData && sortedData.map((item: any) => (

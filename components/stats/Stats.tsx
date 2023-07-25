@@ -11,11 +11,11 @@ const Stats = () => {
   const getStats = useCallback(async () => {
     const [contentTypes, entries, publishedEntries, assets, locales, tags] = await Promise.all([
       cma.contentType.getMany({}),
-      cma.entry.getMany({}),
+      cma.entry.getMany({ query: { limit: 1000 } }),
       cma.entry.getPublished({}),
-      cma.asset.getMany({}),
+      cma.asset.getMany({ query: { limit: 1000 } }),
       cma.locale.getMany({}),
-      cma.tag.getMany({}),
+      cma.tag.getMany({ query: { limit: 1000 } }),
     ]);
 
     return {
